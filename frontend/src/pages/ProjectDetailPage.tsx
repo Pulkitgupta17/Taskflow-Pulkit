@@ -466,26 +466,9 @@ export function ProjectDetailPage() {
           isLoading={updateTask.isPending}
           task={editingTask}
           members={members}
+          onDelete={handleDeleteTask}
+          isDeleting={deleteTaskMutation.isPending}
         />
-      )}
-
-      {/* Edit Task Modal - Delete Button (rendered separately) */}
-      {editingTask && (
-        <div className="fixed bottom-6 right-6 z-[60]">
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => handleDeleteTask(editingTask.id)}
-            disabled={deleteTaskMutation.isPending}
-          >
-            {deleteTaskMutation.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="mr-2 h-4 w-4" />
-            )}
-            Delete Task
-          </Button>
-        </div>
       )}
 
       {/* Edit Project Modal */}

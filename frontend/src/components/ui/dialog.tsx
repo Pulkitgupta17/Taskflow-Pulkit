@@ -7,6 +7,7 @@ import {
 } from 'react'
 import { cn } from '@/lib/utils'
 import { X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface DialogProps {
   open: boolean
@@ -35,20 +36,49 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
     }
   }, [open, handleEscape])
 
-  if (!open) return null
-
   const handleOverlayClick = (e: MouseEvent) => {
     if (e.target === overlayRef.current) onOpenChange(false)
   }
 
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-      onClick={handleOverlayClick}
-    >
-      {children}
-    </div>
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          ref={overlayRef}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={handleOverlayClick}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            aria-hidden="true"
+          />
+          {/* Content wrapper */}
+          <motion.div
+            className="relative z-10"
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{
+              type: 'spring',
+              stiffness: 400,
+              damping: 30,
+              mass: 0.8,
+            }}
+          >
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -64,14 +94,15 @@ function DialogContent({
   return (
     <div
       className={cn(
-        'relative w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg animate-in fade-in-0 zoom-in-95',
+        'relative w-full max-w-xl rounded-2xl border border-border/50 bg-background p-8 shadow-2xl',
+        'dark:border-white/10 dark:bg-gray-900/95',
         className
       )}
     >
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="absolute right-5 top-5 rounded-full p-1 opacity-50 ring-offset-background transition-all duration-200 hover:opacity-100 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
@@ -89,7 +120,7 @@ function DialogHeader({
   return (
     <div
       className={cn(
-        'flex flex-col space-y-1.5 text-center sm:text-left',
+        'flex flex-col space-y-2 text-center sm:text-left',
         className
       )}
       {...props}
@@ -104,7 +135,7 @@ function DialogTitle({
   return (
     <h2
       className={cn(
-        'text-lg font-semibold leading-none tracking-tight',
+        'text-xl font-semibold leading-none tracking-tight',
         className
       )}
       {...props}
@@ -118,7 +149,7 @@ function DialogDescription({
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn('text-sm text-muted-foreground', className)}
+      className={cn('text-sm text-muted-foreground mt-1', className)}
       {...props}
     />
   )
@@ -131,7 +162,7 @@ function DialogFooter({
   return (
     <div
       className={cn(
-        'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
+        'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 pt-2',
         className
       )}
       {...props}

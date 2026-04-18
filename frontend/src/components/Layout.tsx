@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { CheckSquare, LogOut, Moon, Sun, User } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { AppBackground } from './AppBackground'
 
 function getInitialTheme(): 'light' | 'dark' {
   const stored = localStorage.getItem('theme')
@@ -45,7 +46,8 @@ export function Layout() {
   }, [logout, navigate])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-background">
+      <AppBackground />
       <motion.header
         initial={{ y: -10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -108,7 +110,7 @@ export function Layout() {
         </div>
       </motion.header>
 
-      <main className="container px-4 sm:px-8 py-6">
+      <main className="relative z-10 container px-4 sm:px-8 py-6">
         <Outlet />
       </main>
     </div>
