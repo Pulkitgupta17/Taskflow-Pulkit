@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useProject, useUpdateProject, useDeleteProject } from '@/hooks/useProjects'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/useTasks'
 import { useUsers } from '@/hooks/useUsers'
-import { TaskCard } from '@/components/TaskCard'
+import { TaskCard, taskCardVariants } from '@/components/TaskCard'
 import { TaskForm } from '@/components/TaskForm'
 import { ProjectForm } from '@/components/ProjectForm'
 import { EmptyState } from '@/components/EmptyState'
@@ -28,7 +28,25 @@ import {
   AlertCircle,
   RefreshCw,
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { Task, TaskStatus, TaskPriority } from '@/types'
+
+const columnVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.35, ease: 'easeOut' as const },
+  }),
+}
+
+const taskListVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06 },
+  },
+}
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -242,17 +260,34 @@ export function ProjectDetailPage() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/projects')}
-          className="mb-4 -ml-2"
+        <motion.div
+          whileHover="hovered"
+          initial={false}
+          className="inline-block"
         >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to Projects
-        </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/projects')}
+            className="mb-4 -ml-2 group"
+          >
+            <motion.span
+              className="inline-flex mr-1"
+              variants={{ hovered: { x: -3 } }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </motion.span>
+            Back to Projects
+          </Button>
+        </motion.div>
 
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"
+        >
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight truncate">
               {project.name}
@@ -285,11 +320,16 @@ export function ProjectDetailPage() {
               </Button>
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* Filters and Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.15, duration: 0.3 }}
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6"
+      >
         <div className="flex items-center gap-2 flex-wrap">
           <Select
             value={statusFilter}
@@ -320,7 +360,7 @@ export function ProjectDetailPage() {
           <Plus className="mr-2 h-4 w-4" />
           Add Task
         </Button>
-      </div>
+      </motion.div>
 
       {/* Tasks */}
       {tasksLoading ? (
@@ -351,8 +391,14 @@ export function ProjectDetailPage() {
       ) : (
         /* Kanban columns */
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {(Object.keys(tasksByStatus) as TaskStatus[]).map((status) => (
-            <div key={status}>
+          {(Object.keys(tasksByStatus) as TaskStatus[]).map((status, columnIndex) => (
+            <motion.div
+              key={status}
+              custom={columnIndex}
+              variants={columnVariants}
+              initial="hidden"
+              animate="visible"
+            >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                   {statusLabels[status]}
@@ -361,24 +407,41 @@ export function ProjectDetailPage() {
                   {tasksByStatus[status].length}
                 </span>
               </div>
-              <div className="space-y-3">
-                {tasksByStatus[status].map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onClick={() => setEditingTask(task)}
-                    onStatusChange={(newStatus) =>
-                      handleStatusChange(task.id, newStatus)
-                    }
-                  />
-                ))}
+              <motion.div
+                className="space-y-3"
+                variants={taskListVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <AnimatePresence mode="popLayout">
+                  {tasksByStatus[status].map((task) => (
+                    <motion.div
+                      key={task.id}
+                      layoutId={task.id}
+                      variants={taskCardVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                      layout
+                      transition={{ layout: { type: 'spring', stiffness: 350, damping: 30 } }}
+                    >
+                      <TaskCard
+                        task={task}
+                        onClick={() => setEditingTask(task)}
+                        onStatusChange={(newStatus) =>
+                          handleStatusChange(task.id, newStatus)
+                        }
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
                 {tasksByStatus[status].length === 0 && (
                   <div className="rounded-lg border border-dashed p-4 text-center">
                     <p className="text-xs text-muted-foreground">No tasks</p>
                   </div>
                 )}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           ))}
         </div>
       )}

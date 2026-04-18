@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 import type { TaskStatus } from '@/types'
 
 const statusConfig: Record<
@@ -27,17 +29,30 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, onClick, className }: StatusBadgeProps) {
   const config = statusConfig[status]
+  const [isPulsing, setIsPulsing] = useState(false)
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      setIsPulsing(true)
+      setTimeout(() => setIsPulsing(false), 300)
+      onClick(e)
+    }
+  }
+
   return (
-    <span
-      onClick={onClick}
+    <motion.span
+      onClick={handleClick}
+      whileHover={{ scale: 1.08 }}
+      animate={isPulsing ? { scale: [1, 1.15, 1] } : {}}
+      transition={{ duration: 0.25 }}
       className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-all duration-200',
         config.className,
-        onClick && 'cursor-pointer hover:opacity-80 transition-opacity',
+        onClick && 'cursor-pointer hover:opacity-80',
         className
       )}
     >
       {config.label}
-    </span>
+    </motion.span>
   )
 }

@@ -1,85 +1,163 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
+
+const ribbons = [
+  {
+    // Large purple ribbon — top-left, sweeps right
+    gradient: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 40%, #EC4899 100%)',
+    size: '150vh',
+    top: '-40%',
+    left: '-20%',
+    borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+    animation: 'ribbonDrift1 25s ease-in-out infinite',
+    opacity: 0.6,
+    blur: 0,
+  },
+  {
+    // Hot pink ribbon — bottom-right, sweeps left
+    gradient: 'linear-gradient(220deg, #EC4899 0%, #F472B6 50%, #F97316 100%)',
+    size: '130vh',
+    top: '20%',
+    left: '40%',
+    borderRadius: '70% 30% 30% 70% / 60% 40% 60% 40%',
+    animation: 'ribbonDrift2 28s ease-in-out infinite',
+    opacity: 0.5,
+    blur: 0,
+  },
+  {
+    // Orange ribbon — bottom-left
+    gradient: 'linear-gradient(45deg, #F97316 0%, #FB923C 50%, #F472B6 100%)',
+    size: '120vh',
+    top: '30%',
+    left: '-30%',
+    borderRadius: '50% 50% 30% 70% / 40% 60% 40% 60%',
+    animation: 'ribbonDrift3 22s ease-in-out infinite',
+    opacity: 0.45,
+    blur: 30,
+  },
+  {
+    // Blue ribbon — top-right, for depth
+    gradient: 'linear-gradient(300deg, #3B82F6 0%, #8B5CF6 60%, #7C3AED 100%)',
+    size: '110vh',
+    top: '-30%',
+    left: '50%',
+    borderRadius: '40% 60% 50% 50% / 50% 50% 60% 40%',
+    animation: 'ribbonDrift4 30s ease-in-out infinite',
+    opacity: 0.4,
+    blur: 20,
+  },
+  {
+    // Small vivid accent — center-ish, sharp
+    gradient: 'linear-gradient(180deg, #8B5CF6 0%, #EC4899 100%)',
+    size: '80vh',
+    top: '10%',
+    left: '20%',
+    borderRadius: '60% 40% 60% 40% / 40% 60% 40% 60%',
+    animation: 'ribbonDrift5 26s ease-in-out infinite',
+    opacity: 0.35,
+    blur: 0,
+  },
+]
+
+const keyframes = `
+@keyframes ribbonDrift1 {
+  0%, 100% {
+    transform: rotate(0deg) translate(0, 0) scale(1);
+  }
+  33% {
+    transform: rotate(8deg) translate(5%, 3%) scale(1.05);
+  }
+  66% {
+    transform: rotate(-5deg) translate(-3%, 5%) scale(0.97);
+  }
+}
+
+@keyframes ribbonDrift2 {
+  0%, 100% {
+    transform: rotate(0deg) translate(0, 0) scale(1);
+  }
+  33% {
+    transform: rotate(-10deg) translate(-4%, -3%) scale(1.03);
+  }
+  66% {
+    transform: rotate(6deg) translate(3%, -5%) scale(0.95);
+  }
+}
+
+@keyframes ribbonDrift3 {
+  0%, 100% {
+    transform: rotate(0deg) translate(0, 0) scale(1);
+  }
+  25% {
+    transform: rotate(12deg) translate(6%, 2%) scale(1.04);
+  }
+  50% {
+    transform: rotate(-3deg) translate(2%, 6%) scale(1.02);
+  }
+  75% {
+    transform: rotate(-8deg) translate(-4%, 3%) scale(0.96);
+  }
+}
+
+@keyframes ribbonDrift4 {
+  0%, 100% {
+    transform: rotate(0deg) translate(0, 0) scale(1);
+  }
+  50% {
+    transform: rotate(-12deg) translate(-5%, 4%) scale(1.06);
+  }
+}
+
+@keyframes ribbonDrift5 {
+  0%, 100% {
+    transform: rotate(0deg) translate(0, 0) scale(1);
+  }
+  33% {
+    transform: rotate(15deg) translate(4%, -4%) scale(1.08);
+  }
+  66% {
+    transform: rotate(-7deg) translate(-6%, 2%) scale(0.94);
+  }
+}
+`
 
 export function AnimatedBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    let animationId: number = 0
-    let time = 0
-
-    const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-    }
-
-    resize()
-    window.addEventListener('resize', resize)
-
-    // Gradient orbs configuration — Stripe-style flowing colors
-    const orbs = [
-      { x: 0.3, y: 0.2, radius: 0.45, color: [124, 58, 237], speed: 0.0008, phase: 0 },        // Purple
-      { x: 0.7, y: 0.8, radius: 0.5, color: [249, 115, 22], speed: 0.0006, phase: 2 },           // Orange
-      { x: 0.8, y: 0.3, radius: 0.4, color: [236, 72, 153], speed: 0.001, phase: 4 },            // Pink
-      { x: 0.2, y: 0.7, radius: 0.35, color: [59, 130, 246], speed: 0.0007, phase: 1 },          // Blue
-      { x: 0.5, y: 0.5, radius: 0.55, color: [167, 139, 250], speed: 0.0005, phase: 3 },         // Light purple
-      { x: 0.9, y: 0.6, radius: 0.3, color: [251, 146, 60], speed: 0.0009, phase: 5 },           // Light orange
-    ]
-
-    const draw = () => {
-      time++
-      const w = canvas.width
-      const h = canvas.height
-
-      // Clear with white base
-      ctx.fillStyle = '#fafafa'
-      ctx.fillRect(0, 0, w, h)
-
-      // Draw each orb with smooth motion
-      for (const orb of orbs) {
-        const cx = w * (orb.x + 0.15 * Math.sin(time * orb.speed + orb.phase))
-        const cy = h * (orb.y + 0.12 * Math.cos(time * orb.speed * 1.3 + orb.phase))
-        const r = Math.max(w, h) * orb.radius
-
-        const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
-        gradient.addColorStop(0, `rgba(${orb.color[0]}, ${orb.color[1]}, ${orb.color[2]}, 0.3)`)
-        gradient.addColorStop(0.5, `rgba(${orb.color[0]}, ${orb.color[1]}, ${orb.color[2]}, 0.1)`)
-        gradient.addColorStop(1, `rgba(${orb.color[0]}, ${orb.color[1]}, ${orb.color[2]}, 0)`)
-
-        ctx.fillStyle = gradient
-        ctx.fillRect(0, 0, w, h)
-      }
-
-      animationId = requestAnimationFrame(draw)
-    }
-
-    // Respect reduced motion preference
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)')
-    if (prefersReduced.matches) {
-      // Draw a single static frame
-      draw()
-      cancelAnimationFrame(animationId)
-    } else {
-      draw()
-    }
-
-    return () => {
-      cancelAnimationFrame(animationId)
-      window.removeEventListener('resize', resize)
-    }
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReducedMotion(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
   }, [])
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 w-full h-full"
-      style={{ zIndex: 0 }}
-      aria-hidden="true"
-    />
+    <>
+      <style dangerouslySetInnerHTML={{ __html: keyframes }} />
+      <div
+        className="fixed inset-0 w-full h-full overflow-hidden"
+        style={{ zIndex: 0, background: '#fafafa' }}
+        aria-hidden="true"
+      >
+        {ribbons.map((ribbon, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              width: ribbon.size,
+              height: ribbon.size,
+              top: ribbon.top,
+              left: ribbon.left,
+              borderRadius: ribbon.borderRadius,
+              background: ribbon.gradient,
+              opacity: ribbon.opacity,
+              filter: ribbon.blur > 0 ? `blur(${ribbon.blur}px)` : undefined,
+              animation: reducedMotion ? 'none' : ribbon.animation,
+              willChange: 'transform',
+            }}
+          />
+        ))}
+      </div>
+    </>
   )
 }
